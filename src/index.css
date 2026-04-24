@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-white text-slate-900 transition-colors duration-500;
+}
+
+.dark body {
+  @apply bg-[#0b1220] text-slate-100;
+}
+
+
+:root {
+  --bg: #ffffff;
+  --text: #0f172a;
+  --card: #f8fafc;
+}
+
+.dark {
+  --bg: #0b1220;
+  --text: #f1f5f9;
+  --card: #111827;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: all 0.4s ease;
+}
+
+
+
+
+* {
+  box-sizing: border-box;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #5fa046;
+  border-radius: 10px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+/* Glass effect */
+.glass-effect {
+  @apply bg-white/70 backdrop-blur-md border border-green-600/20;
+}
+
+.dark .glass-effect {
+  @apply bg-slate-800/80 border-white/5;
+}
+
+/* Reveal animation */
+.reveal {
+  @apply opacity-0 translate-y-10 transition-all duration-500;
+}
+
+.reveal.active {
+  @apply opacity-100 translate-y-0;
+}
+
+/* Team card */
+.team-card {
+  @apply relative overflow-hidden rounded-3xl cursor-pointer transition-all duration-500;
+}
+
+.team-info {
+  @apply absolute inset-0 flex flex-col justify-center items-center;
+}
+
+/* Accordion */
+.accordion-item {
+  @apply bg-slate-50 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl overflow-hidden transition-all duration-300;
+}
+
+.accordion-item.active {
+  @apply border-green-600 shadow-lg;
+}
+
+.accordion-icon {
+  @apply transition-transform duration-300;
+}
+
+/* Form error */
+.form-error {
+  @apply text-red-600 text-sm mt-1 hidden;
+}
+
+.form-error.show {
+  @apply block;
+}
+
+/* Toast */
+.toast {
+  @apply fixed bottom-8 right-8 px-6 py-4 rounded-lg text-white font-bold shadow-lg z-50;
+  animation: slideIn 0.3s ease-out;
+}
+
+.toast.error {
+  @apply bg-red-500;
+}
+
+/* Animations */
+@keyframes slideIn {
+  from {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(400px);
+    opacity: 0;
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Utility animations */
+.animate-fade-in-down {
+  animation: fadeInDown 0.8s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 1s ease-out;
+}
