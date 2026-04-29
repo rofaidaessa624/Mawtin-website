@@ -59,8 +59,8 @@ const ReserveModal: React.FC<ReserveModalProps> = ({ isOpen, onClose }) => {
           </svg>
         </button>
 
-        <div class="text-center mb-6">
-            <h3 className="text-2xl font-black text-slate-800 dark:text-white" id="modal-title">
+<div className="text-center mb-6">
+              <h3 className="text-2xl font-black text-slate-800 dark:text-white" id="modal-title">
               تسجيل الدخول
             </h3>
             <p className="text-slate-500 text-sm mt-1">يرجى إدخال البيانات المطلوبة</p>
