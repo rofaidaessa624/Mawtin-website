@@ -95,7 +95,7 @@ const About: React.FC = () => {
               {/* MAIN IMAGE (Workers focus) */}
               <div className="col-span-8 row-span-12 relative overflow-hidden rounded-[2rem] shadow-2xl group">
                 <img
-                  src="./src/assets/6003402284903107689.jpg"
+                  src="/assets/6003402284903107689.jpg"
                   
                   alt="عمال البناء"
                   className="w-full h-full object-cover brightness-90 contrast-110 saturate-110 transition duration-1000 group-hover:scale-105"
@@ -113,7 +113,7 @@ const About: React.FC = () => {
               {/* TOP RIGHT */}
               <div className="col-span-4 row-span-6 relative overflow-hidden rounded-2xl shadow-xl group">
                 <img
-                                    src="./src/assets/6003402284903107686.jpg"
+                                    src="/assets/6003402284903107686.jpg"
 
                   alt="Site Progress"
                   className="w-full h-full object-cover brightness-90 contrast-110 transition duration-700 group-hover:scale-110"
@@ -124,7 +124,7 @@ const About: React.FC = () => {
               {/* BOTTOM RIGHT */}
               <div className="col-span-4 row-span-6 relative overflow-hidden rounded-2xl shadow-xl group">
                 <img
-                  src="./src/assets/6003402284903107687.jpg"
+                  src="/assets/6003402284903107687.jpg"
                   alt="Engineering Quality"
                   className="w-full h-full object-cover brightness-90 contrast-110 transition duration-700 group-hover:scale-110"
                 />

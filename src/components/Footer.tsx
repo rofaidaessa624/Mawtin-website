@@ -59,15 +59,17 @@ const Footer: React.FC = () => {
             <div className="flex gap-3 flex-wrap">
 
               {[
-                { icon: 'facebook-f', color: 'hover:bg-blue-600' },
-                { icon: 'youtube', color: 'hover:bg-red-600' },
-                { icon: 'whatsapp', color: 'hover:bg-green-500' },
-                { icon: 'instagram', color: 'hover:bg-pink-600' },
-                { icon: 'tiktok', color: 'hover:bg-black' },
+                { icon: 'facebook-f', color: 'hover:bg-blue-600', link: 'https://www.facebook.com/profile.php?id=61576194189448' },
+                { icon: 'youtube', color: 'hover:bg-red-600', link: 'https://www.youtube.com/@mawtin_real_state' },
+                { icon: 'whatsapp', color: 'hover:bg-green-500', link: 'https://wa.me/201055533321' },
+                { icon: 'instagram', color: 'hover:bg-pink-600', link: 'https://www.instagram.com/mawtin_real_state/' },
+                { icon: 'tiktok', color: 'hover:bg-black', link: 'https://www.tiktok.com/@mawtin_real_state' },
               ].map((s, i) => (
                 <a
                   key={i}
-                  href="#"
+                  href={s.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className={`w-11 h-11 bg-[var(--bg)]/5 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-center transition duration-300 hover:scale-110 ${s.color}`}
                 >
                   <i className={`fab fa-${s.icon}`}></i>

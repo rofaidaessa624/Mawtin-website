@@ -61,10 +61,10 @@ const Navigation: React.FC<NavigationProps> = ({
 
           {/* LOGO */}
           <a href="#home" onClick={(e) => handleNavClick(e, "#home")} className="flex items-center gap-4">
-            <img
-              src="./src/assets/logo-removebg-preview.png"
-              className="w-20 h-16 object-contain"
-            />
+           <img
+  src="/assets/logo-removebg-preview.png"
+  className="w-20 h-16 object-contain"
+/>
 
             <div>
               <h1 className="text-3xl font-black text-slate-900 dark:text-white">

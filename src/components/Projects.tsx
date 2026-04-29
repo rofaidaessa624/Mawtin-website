@@ -5,7 +5,7 @@ interface Project {
   title: string;
   description: string;
   image: string;
-  status: 'sold' | 'construction' | 'available';
+  status: 'sold' | 'construction' | 'available' | 'soon';
   pdf: string;
   location: string;
 }
@@ -16,35 +16,35 @@ const Projects: React.FC = () => {
       id: 1,
       title: 'مشروع ٤١ حي الأزهر',
       description: 'مشروع مميز في موقع استراتيجي داخل حي الأزهر.',
-      image: './src/assets/7b2a677b-4642-4346-a394-568fc358ef59/6005654084716792869.jpg',
-      status: 'available',
-      pdf: './public/brochures/Brochure Villa 3 al azhar 3.pdf',
+      image: '/assets/7b2a677b-4642-4346-a394-568fc358ef59/6005654084716792869.jpg',
+      status: 'sold',
+      pdf: '/brochures/Brochure Villa 41 al azhar 3.pdf',
       location: 'https://maps.app.goo.gl/F2Gja5DCQFpj2u348?g_st=iw',
     },
     {
       id: 2,
       title: 'مشروع ٩١٢ الحي الرابع',
       description: 'وحدات سكنية متكاملة بمساحات متنوعة وتشطيب مميز.',
-      image: './src/assets/961b644c-3b40-43a9-a908-5587b99747e9/6005654084716792870.jpg',
-      status: 'construction',
-      pdf: './public/brochures/Brochure Villa 912 al azhar 3.pdf',
+      image: '/assets/961b644c-3b40-43a9-a908-5587b99747e9/6005654084716792870.jpg',
+      status: 'available',
+      pdf: '/brochures/Brochure Villa 912 al azhar 3.pdf',
       location: 'https://maps.app.goo.gl/HHoGmBkRAmgvWgWYA?g_st=iw',
     },
     {
       id: 3,
       title: 'مشروع ٣ حي الأزهر',
       description: 'مشروع يجمع بين الموقع المميز وسهولة الوصول.',
-      image: './src/assets/3378899a-8433-4b5e-9738-c110097dfd39/6005654084716792869.jpg',
+      image: '/assets/3378899a-8433-4b5e-9738-c110097dfd39/6005654084716792869.jpg',
       status: 'sold',
-      pdf: './public/brochures/Brochure Villa 3 al azhar 3.pdf',
+      pdf: '/brochures/Brochure Villa 3 al azhar 3.pdf',
       location: 'https://maps.app.goo.gl/Zfh9R1p9gug58kum8?g_st=iw',
     },
     {
       id: 4,
       title: 'مشروع ١٤ الحي الخامس (طريق الأربع حارات)',
       description: 'فيلات ومشروعات راقية بتصميم عصري وموقع حيوي.',
-      image: './src/assets/88344759-e888-45f5-9d3a-31abd157c8de/6005654084716792867.jpg',
-      status: 'available',
+      image: '/assets/88344759-e888-45f5-9d3a-31abd157c8de/6005654084716792867.jpg',
+      status: 'soon',
       pdf: '/brochures/project-14.pdf',
       location: 'https://maps.app.goo.gl/XYu6SoYTFuA7iuQe7?g_st=iw',
     },
@@ -54,12 +54,14 @@ const Projects: React.FC = () => {
     sold: 'تم البيع',
     construction: 'تحت الإنشاء',
     available: 'متاح الحجز',
+    soon: 'قريباً',
   };
 
   const statusColor = {
     sold: 'bg-red-600',
     construction: 'bg-yellow-500',
     available: 'bg-[#5fa046]',
+    soon: 'bg-[#5fa046]',
   };
 
   return (
@@ -98,15 +100,25 @@ const Projects: React.FC = () => {
                 />
 
                 {/* OVERLAY */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center">
-
+                <div
+                  className={`absolute inset-0 flex items-center justify-center transition
+                  ${project.status === 'soon'
+                      ? 'bg-black/40'
+                      : 'bg-black/0 group-hover:bg-black/40'
+                    }`}
+                >
                   <span
-                    className={`px-4 py-2 text-white text-sm font-bold rounded-full opacity-0 group-hover:opacity-100 transition ${statusColor[project.status]}`}
+                    className={`px-4 py-2 text-white text-sm font-bold rounded-full transition
+                    ${statusColor[project.status]}
+                    ${project.status === 'soon'
+                        ? 'opacity-100'
+                        : 'opacity-0 group-hover:opacity-100'
+                      }`}
                   >
                     {statusText[project.status]}
                   </span>
-
                 </div>
+
               </div>
 
               {/* CONTENT */}
@@ -150,7 +162,6 @@ const Projects: React.FC = () => {
           ))}
 
         </div>
-
       </div>
     </section>
   );

@@ -4,12 +4,12 @@ interface HeroProps {
   isDark?: boolean;
 }
 
-const darkImg = "./src/assets/hero-dark.jpeg";
-const lightImg = "./src/assets/hero-light.jpeg";
+const darkImg = "/assets/hero-dark.jpeg";
+const lightImg = "/assets/hero-light.jpeg";
 
 const Hero: React.FC<HeroProps> = ({ isDark = true }) => {
   const [experience, setExperience] = useState(0);
-  const [clients, setClients] = useState(0);
+  // const [setClients] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
   const currentImage = isDark ? darkImg : lightImg;
@@ -26,7 +26,7 @@ const Hero: React.FC<HeroProps> = ({ isDark = true }) => {
       const ease = 1 - Math.pow(1 - progress, 3); // smoother easing
 
       setExperience(Math.floor(12 * ease));
-      setClients(Math.floor(100 * ease));
+      // setClients(Math.floor(100 * ease));
 
       if (progress < 1) {
         requestAnimationFrame(animate);
@@ -77,9 +77,9 @@ const Hero: React.FC<HeroProps> = ({ isDark = true }) => {
           بيتك <span className="text-green-500">ومطرحك</span>
         </h1>
 
-        <p className="text-sm md:text-lg text-slate-100 mb-8 max-w-2xl mx-auto">
-          نقدم لك وحدات سكنية وتجارية تجمع بين الرفاهية العالمية والروح المصرية الأصيلة.
-        </p>
+        <p className="text-sm md:text-lg text-slate-100 font-bold mb-8 max-w-2xl mx-auto">
+نقدم لك وحدات " سكنية - تجارية - إدارية " تجمع بين الرفاهية العصرية والروح المصرية الأصيلة    
+    </p>
 
         <div className="flex flex-wrap justify-center gap-4 mb-10">
 
@@ -108,12 +108,12 @@ const Hero: React.FC<HeroProps> = ({ isDark = true }) => {
             <p className="text-slate-300 text-xs mt-1">سنة خبرة</p>
           </div>
 
-          <div className="bg-[var(--bg)]/5 backdrop-blur-xl border border-white/10 p-5 rounded-3xl min-w-[150px] transition hover:scale-105 duration-300">
+          {/* <div className="bg-[var(--bg)]/5 backdrop-blur-xl border border-white/10 p-5 rounded-3xl min-w-[150px] transition hover:scale-105 duration-300">
             <div className="text-4xl font-black text-white">
               {clients}+
             </div>
             <p className="text-slate-300 text-xs mt-1">عميل يثق بنا</p>
-          </div>
+          </div> */}
 
         </div>
 
