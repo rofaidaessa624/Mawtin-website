@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react';
 
 /**
- * ملاحظة: قمت بدمج وظائف التحقق والتنبيهات داخلياً لجعل الملف يعمل بشكل مستقل،
- * يمكنك إعادة استخدام دوالك الخارجية (validateForm, showToast) إذا فضلت ذلك.
+ * ملاحظة: تم تحديث الكود ليتوافق مع TypeScript وحل أخطاء الـ build.
+ * تم إزالة استيراد React غير المستخدم وتحديد أنواع البيانات للمدخلات والأحداث.
  */
 
 const App = () => {
@@ -12,22 +12,22 @@ const App = () => {
     message: '',
   });
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [toast, setToast] = useState<string | null>(null);
 
-  const showInternalToast = (msg) => {
+  const showInternalToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 3000);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
     // تحقق بسيط
