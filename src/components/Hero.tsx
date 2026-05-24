@@ -69,7 +69,7 @@ const Hero: React.FC<HeroProps> = ({ isDark = true }) => {
       {/* ================= CONTENT ================= */}
       <div className="container mx-auto px-4 text-center z-10 relative">
 
-        <div className="inline-block px-3 py-1 rounded-full bg-green-800/60 text-white text-xs font-bold mb-4 backdrop-blur-md">
+        <div className="inline-block px-3 py-1 rounded-full bg-green-800/60 text-white text-xl font-bold mb-4 backdrop-blur-md">
           رواد التطوير العقاري في بني سويف
         </div>
 

@@ -1,16 +1,22 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface NavigationProps {
   isDark: boolean;
   toggleTheme: () => void;
   onReserveClick: () => void;
+  isAuthenticated: boolean;      // ✅ جديد
+  onLogout: () => void;          // ✅ جديد
 }
 
 const Navigation: React.FC<NavigationProps> = ({
   isDark,
   toggleTheme,
   onReserveClick,
+  isAuthenticated,
+  onLogout,
 }) => {
+  const navigate = useNavigate();
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -42,6 +48,18 @@ const Navigation: React.FC<NavigationProps> = ({
     setShowMobileMenu(false);
   };
 
+  // ✅ دوال التنقل
+  const goToDashboard = () => {
+    navigate("/user/dashboard");
+    setShowMobileMenu(false);
+  };
+
+  const handleLogoutClick = () => {
+    onLogout();
+    navigate("/");
+    setShowMobileMenu(false);
+  };
+
   return (
     <nav
       className={`fixed w-full z-50 transition-all duration-500 ${
@@ -61,11 +79,11 @@ const Navigation: React.FC<NavigationProps> = ({
 
           {/* LOGO */}
           <a href="#home" onClick={(e) => handleNavClick(e, "#home")} className="flex items-center gap-4">
-           <img
-  src="/assets/logo-removebg-preview.png"
-  className="w-20 h-16 object-contain"
-/>
-
+            <img
+              src="/assets/logo-removebg-preview.png"
+              className="w-20 h-16 object-contain"
+              alt="شعار موطن"
+            />
             <div>
               <h1 className="text-3xl font-black text-slate-900 dark:text-white">
                 موطن
@@ -83,10 +101,9 @@ const Navigation: React.FC<NavigationProps> = ({
                 key={link.href}
                 href={link.href}
                 onClick={(e) => handleNavClick(e, link.href)}
-                className="relative font-bold text-lg hover:text-[#5fa046] transition"
+                className="relative font-bold text-lg hover:text-[#5fa046] transition group"
               >
                 {link.label}
-
                 {/* underline hover */}
                 <span className="absolute right-0 -bottom-1 w-0 h-[2px] bg-[#5fa046] transition-all duration-300 group-hover:w-full"></span>
               </a>
@@ -100,22 +117,41 @@ const Navigation: React.FC<NavigationProps> = ({
             <button
               onClick={toggleTheme}
               className="w-11 h-11 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#111827] text-slate-700 dark:text-white hover:bg-[#5fa046] hover:text-white transition"
+              aria-label="تبديل الوضع الليلي"
             >
               <i className={`fas fa-${isDark ? "sun" : "moon"}`} />
             </button>
 
-            {/* CTA */}
-            <button
-              onClick={onReserveClick}
-              className="hidden md:flex bg-[#5fa046] hover:bg-[#4e8a3a] text-white px-6 py-2.5 rounded-xl font-bold transition"
-            >
-              تسجيل دخول
-            </button>
+            {/* ✅ CTA - متغير حسب حالة تسجيل الدخول */}
+            {isAuthenticated ? (
+              <div className="hidden md:flex items-center gap-3">
+                <button
+                  onClick={goToDashboard}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-bold transition"
+                >
+                  لوحة التحكم
+                </button>
+                <button
+                  onClick={handleLogoutClick}
+                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2.5 rounded-xl font-bold transition"
+                >
+                  تسجيل خروج
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onReserveClick}
+                className="hidden md:flex bg-[#5fa046] hover:bg-[#4e8a3a] text-white px-6 py-2.5 rounded-xl font-bold transition"
+              >
+                تسجيل دخول
+              </button>
+            )}
 
-            {/* MOBILE */}
+            {/* MOBILE BUTTON */}
             <button
               onClick={() => setShowMobileMenu(!showMobileMenu)}
               className="lg:hidden w-11 h-11 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#111827] text-slate-700 dark:text-white"
+              aria-label="القائمة"
             >
               <i className={`fas fa-${showMobileMenu ? "xmark" : "bars"}`} />
             </button>
@@ -123,7 +159,7 @@ const Navigation: React.FC<NavigationProps> = ({
           </div>
         </div>
 
-        {/* MOBILE MENU */}
+        {/* ✅ MOBILE MENU - متغير حسب حالة تسجيل الدخول */}
         {showMobileMenu && (
           <div className="lg:hidden mt-4 bg-white dark:bg-[#0b1220] rounded-2xl p-6 shadow-xl border border-slate-200 dark:border-slate-800">
             <div className="flex flex-col gap-4 text-slate-800 dark:text-white">
@@ -139,12 +175,30 @@ const Navigation: React.FC<NavigationProps> = ({
                 </a>
               ))}
 
-              <button
-                onClick={onReserveClick}
-                className="w-full bg-[#5fa046] text-white py-3 rounded-xl font-bold mt-4"
-              >
-                تسجيل دخول
-              </button>
+              {/* ✅ أزرار الموبايل حسب حالة تسجيل الدخول */}
+              {isAuthenticated ? (
+                <>
+                  <button
+                    onClick={goToDashboard}
+                    className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold mt-2 transition"
+                  >
+                    لوحة التحكم
+                  </button>
+                  <button
+                    onClick={handleLogoutClick}
+                    className="w-full bg-red-600 text-white py-3 rounded-xl font-bold transition"
+                  >
+                    تسجيل خروج
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={onReserveClick}
+                  className="w-full bg-[#5fa046] text-white py-3 rounded-xl font-bold mt-4"
+                >
+                  تسجيل دخول
+                </button>
+              )}
 
             </div>
           </div>
