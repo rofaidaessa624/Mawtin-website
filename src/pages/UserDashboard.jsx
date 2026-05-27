@@ -397,19 +397,34 @@ const fetchDashboard = async () => {
                                 })}
                             </p>
                             {/* ✅ صور التطورات */}
-                            {update.images && update.images.length > 0 && (
-                                <div className="flex gap-2 mt-3 flex-wrap">
-                                    {update.images.map((img, imgIdx) => (
-                                        <img
-                                            key={imgIdx}
-                                            src={`http://127.0.0.1:8000/storage/${img.path}`}
-                                            alt={`تطور ${idx + 1}`}
-                                            className="w-24 h-24 object-cover rounded-lg border border-gray-700 shadow-md hover:scale-105 transition-transform cursor-pointer"
-                                            onClick={() => window.open(`http://127.0.0.1:8000/storage/${img.path}`, '_blank')}
-                                        />
-                                    ))}
-                                </div>
-                            )}
+        {/* ✅ صور التطورات - نسخة محسنة */}
+{update.images && update.images.length > 0 && (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
+        {update.images.map((img, imgIdx) => (
+            <div 
+                key={imgIdx} 
+                className="group relative aspect-square rounded-xl overflow-hidden bg-gray-800 border border-gray-700 cursor-pointer shadow-md hover:shadow-emerald-500/20 transition-all duration-300"
+                onClick={() => window.open(`https://api.mawtin.net/storage/${img.path}`, '_blank')}
+            >
+                <img
+                    src={`https://api.mawtin.net/storage/${img.path}`}
+                    alt={`تطور الوحدة`}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                    loading="lazy"
+                />
+                {/* طبقة تكبير عند hover */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                    <span className="opacity-0 group-hover:opacity-100 text-white text-2xl transform scale-75 group-hover:scale-100 transition-all duration-200">
+                        🔍
+                    </span>
+                </div>
+            </div>
+        ))}
+    </div>
+)}
+
+
+
                         </div>
                     </div>
                 </div>
