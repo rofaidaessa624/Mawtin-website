@@ -6,12 +6,38 @@ import InstallmentsTable from '../components/InstallmentsTable';
 import UnitUpdates from '../components/UnitUpdates';
 
 
+const BASE_URL = 'https://api.mawtin.net';
+
+// ✅ دالة تنظيف رابط الصورة - مصلحة بالكامل
+const getImageUrl = (path) => {
+    if (!path) return '';
+
+    // لو الرابط فيه localhost أو 127.0.0.1 استبدله بالدومين الحقيقي
+    let cleanPath = path
+        .replace('http://127.0.0.1:8000', BASE_URL)
+        .replace('http://localhost:8000', BASE_URL);
+
+    // لو الرابط كامل بالفعل (يبدأ بـ http)
+    if (cleanPath.startsWith('http')) {
+        return cleanPath;
+    }
+
+    // لو path فيه backslash (Windows style) حوله لـ forward slash
+    cleanPath = cleanPath.replace(/\\/g, '/');
+
+    // إزالة أي slashes زيادة من البداية
+    cleanPath = cleanPath.replace(/^\/+/, '');
+
+    return `${BASE_URL}/${cleanPath}`;
+};
+
 const UserDashboard = ({ user, onLogout }) => {
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [sidebarOpen, setSidebarOpen] = useState(true);
-    const [activePage, setActivePage] = useState('dashboard'); // dashboard, myUnits, installments, support, settings
+    const [activePage, setActivePage] = useState('dashboard');
+    const [lightboxImg, setLightboxImg] = useState(null); // ✅ lightbox للصور
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -21,40 +47,40 @@ const UserDashboard = ({ user, onLogout }) => {
         }
     }, []);
 
-const fetchDashboard = async () => {
-    try {
-        const userData = JSON.parse(localStorage.getItem('user_data'));
-        const token = localStorage.getItem('user_token');
+    const fetchDashboard = async () => {
+        try {
+            const userData = JSON.parse(localStorage.getItem('user_data'));
+            const token = localStorage.getItem('user_token');
 
-        if (!userData || !token) {
-            onLogout();
-            navigate('/');
-            return;
-        }
-
-        // ✅ استخدم الرابط الصح مع التوكن
-        const response = await api.get('/user/dashboard', {
-            headers: { 
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
+            if (!userData || !token) {
+                onLogout();
+                navigate('/');
+                return;
             }
-        });
 
-        if (response.data) {
-            setDashboardData(response.data);
+            const response = await api.get('/user/dashboard', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.data) {
+                setDashboardData(response.data);
+            }
+        } catch (err) {
+            console.error('Dashboard error:', err);
+            setError('حدث خطأ في تحميل البيانات');
+            if (err.response?.status === 401) {
+                onLogout();
+                navigate('/');
+            }
+        } finally {
+            setLoading(false);
         }
-    } catch (err) {
-        console.error('Dashboard error:', err);
-        setError('حدث خطأ في تحميل البيانات');
-        if (err.response?.status === 401) {
-            onLogout();
-            navigate('/');
-        }
-    } finally {
-        setLoading(false);
-    }
-};
+    };
+
     const handleLogout = () => {
         onLogout();
         navigate('/');
@@ -76,8 +102,8 @@ const fetchDashboard = async () => {
             <div className="min-h-screen flex items-center justify-center bg-gray-900" dir="rtl">
                 <div className="text-center">
                     <div className="text-red-600 text-xl mb-4">⚠️ {error || 'حدث خطأ في تحميل البيانات'}</div>
-                    <button 
-                        onClick={fetchDashboard} 
+                    <button
+                        onClick={fetchDashboard}
                         className="bg-emerald-700 text-white px-6 py-2 rounded-lg hover:bg-emerald-800 transition"
                     >
                         إعادة المحاولة
@@ -87,14 +113,12 @@ const fetchDashboard = async () => {
         );
     }
 
-    const { client, unit, installments, installments_summary, unit_updates } = dashboardData;
+    const { client, unit, installments, installments_summary, unit_updates, notifications } = dashboardData;
 
-    // حساب نسبة التقدم في الأقساط
-    const paidPercentage = installments_summary?.total_installments > 0 
-        ? (installments_summary.paid_count / installments_summary.total_installments) * 100 
+    const paidPercentage = installments_summary?.total_installments > 0
+        ? (installments_summary.paid_count / installments_summary.total_installments) * 100
         : 0;
 
-    // قائمة الـ Sidebar
     const menuItems = [
         { id: 'dashboard', icon: '📊', label: 'لوحة التحكم' },
         { id: 'myUnits', icon: '🏠', label: 'وحداتي' },
@@ -103,9 +127,49 @@ const fetchDashboard = async () => {
         { id: 'settings', icon: '⚙️', label: 'الإعدادات' },
     ];
 
-    // عرض المحتوى حسب الصفحة النشطة
+    // ✅ مكوّن عرض صور التطورات
+    const UpdateImages = ({ images }) => {
+        if (!images || images.length === 0) return null;
+
+        return (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
+                {images.map((img, imgIdx) => {
+                    // ✅ جرب كل الحقول المحتملة للرابط
+                    const rawPath = img?.path || img?.image_url || img?.url || img?.image_path || img?.file_path || '';
+                    const imageUrl = getImageUrl(rawPath);
+
+                    if (!imageUrl) return null;
+
+                    return (
+                        <div
+                            key={imgIdx}
+                            className="group relative aspect-square rounded-xl overflow-hidden bg-gray-800 border border-gray-700 cursor-pointer shadow-md hover:shadow-emerald-500/20 transition-all duration-300"
+                            onClick={() => setLightboxImg(imageUrl)}
+                        >
+                            <img
+                                src={imageUrl}
+                                alt={`تطور الوحدة ${imgIdx + 1}`}
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                loading="lazy"
+                                onError={(e) => {
+                                    console.warn('❌ فشل تحميل الصورة:', imageUrl);
+                                    e.target.parentElement.style.display = 'none';
+                                }}
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                                <span className="opacity-0 group-hover:opacity-100 text-white text-2xl transform scale-75 group-hover:scale-100 transition-all duration-200">
+                                    🔍
+                                </span>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        );
+    };
+
     const renderContent = () => {
-        switch(activePage) {
+        switch (activePage) {
             case 'myUnits':
                 return (
                     <div className="bg-gray-800 rounded-2xl shadow-sm p-6">
@@ -146,12 +210,12 @@ const fetchDashboard = async () => {
                         </div>
                     </div>
                 );
-            
+
             case 'installments':
                 return (
                     <InstallmentsTable installments={installments || []} unitNumber={unit?.unit_number} />
                 );
-            
+
             case 'support':
                 return (
                     <div className="bg-gray-800 rounded-2xl shadow-sm p-6">
@@ -184,7 +248,7 @@ const fetchDashboard = async () => {
                         </div>
                     </div>
                 );
-            
+
             case 'settings':
                 return (
                     <div className="bg-gray-800 rounded-2xl shadow-sm p-6">
@@ -223,7 +287,7 @@ const fetchDashboard = async () => {
                         </div>
                     </div>
                 );
-            
+
             default: // dashboard
                 return (
                     <>
@@ -311,9 +375,19 @@ const fetchDashboard = async () => {
                             <div className="bg-gray-800 rounded-2xl shadow-sm p-6">
                                 <h2 className="text-lg font-bold text-white mb-4">📊 ملخص الأقساط</h2>
                                 <div className="relative w-40 h-40 mx-auto mb-4">
-                                    <svg className="w-full h-full" viewBox="0 0 100 100">
-                                        <circle className="text-gray-700" strokeWidth="10" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
-                                        <circle className="text-emerald-600" strokeWidth="10" strokeDasharray={`${paidPercentage * 2.51} 251.2`} strokeLinecap="round" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50"/>
+                                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                                        <circle className="text-gray-700" strokeWidth="10" stroke="currentColor" fill="transparent" r="40" cx="50" cy="50" />
+                                        <circle
+                                            className="text-emerald-600"
+                                            strokeWidth="10"
+                                            strokeDasharray={`${paidPercentage * 2.51} 251.2`}
+                                            strokeLinecap="round"
+                                            stroke="currentColor"
+                                            fill="transparent"
+                                            r="40"
+                                            cx="50"
+                                            cy="50"
+                                        />
                                     </svg>
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <span className="text-2xl font-bold text-white">{paidPercentage.toFixed(0)}%</span>
@@ -340,7 +414,7 @@ const fetchDashboard = async () => {
                         <div className="bg-gray-800 rounded-2xl shadow-sm p-6 mb-8">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-lg font-bold text-white">📅 آخر الأقساط</h2>
-                                <button 
+                                <button
                                     onClick={() => setActivePage('installments')}
                                     className="text-emerald-500 text-sm hover:text-emerald-400"
                                 >
@@ -350,7 +424,7 @@ const fetchDashboard = async () => {
                             <div className="overflow-x-auto">
                                 <table className="w-full">
                                     <thead>
-                                        <tr className="bg-gray-800 border-b border-gray-700 rounded-2xl shadow-sm p-6">
+                                        <tr className="border-b border-gray-700">
                                             <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">رقم القسط</th>
                                             <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">المبلغ</th>
                                             <th className="text-right py-3 px-4 text-sm font-semibold text-gray-400">تاريخ الاستحقاق</th>
@@ -378,105 +452,33 @@ const fetchDashboard = async () => {
                             </div>
                         </div>
 
-                        {/* Unit Updates */}
-                  {unit_updates && unit_updates.length > 0 && (
-    <div className="bg-gray-800 rounded-2xl shadow-sm p-6 mb-8">
-        <h2 className="text-lg font-bold text-white mb-4">🔄 تطورات الوحدة</h2>
-        <div className="space-y-4">
-            {unit_updates.slice(0, 5).map((update, idx) => (
-                <div key={idx} className="p-4 bg-gray-900 rounded-xl">
-                    <div className="flex gap-3 items-start">
-                        <div className="w-10 h-10 bg-emerald-900/50 rounded-full flex items-center justify-center flex-shrink-0">
-                            <span className="text-emerald-500">📢</span>
-                        </div>
-                        <div className="flex-1">
-                            <p className="text-white font-medium">{update.update_text}</p>
-                            <p className="text-xs text-gray-500 mt-1">
-                                {new Date(update.created_at).toLocaleDateString('ar-EG', { 
-                                    year: 'numeric', month: 'long', day: 'numeric' 
-                                })}
-                            </p>
-                            {/* ✅ صور التطورات */}
-{/* ✅ صور التطورات */}
-{update.images && update.images.length > 0 && (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
-        {update.images.map((img, imgIdx) => {
-
-            // ✅ تنظيف الرابط
-const getImageUrl = (path) => {
-    if (!path) return '';
-
-    let cleanPath = path.replace(/\\/g, '');
-
-    // لو الرابط localhost بدليه بالدومين الحقيقي
-    cleanPath = cleanPath.replace(
-        'http://127.0.0.1:8000',
-        'https://api.mawtin.net'
-    );
-
-    cleanPath = cleanPath.replace(
-        'http://localhost:8000',
-        'https://api.mawtin.net'
-    );
-
-    // لو الرابط كامل بالفعل
-    if (cleanPath.startsWith('http')) {
-        return cleanPath;
-    }
-
-    // إزالة slash زيادة
-    cleanPath = cleanPath.replace(/^\/+/, '');
-
-    return `https://api.mawtin.net/${cleanPath}`;
-};// console.log("IMAGE OBJECT =>", img);
-const imageUrl = getImageUrl(
-    img.path || img.image_url || img.url
-);
-            return (
-                <div
-                    key={imgIdx}
-                    className="group relative aspect-square rounded-xl overflow-hidden bg-gray-800 border border-gray-700 cursor-pointer shadow-md hover:shadow-emerald-500/20 transition-all duration-300"
-                    onClick={() => window.open(imageUrl, '_blank')}
-                >
-                    <img
-                        src={imageUrl}
-                        alt={`تطور الوحدة ${imgIdx + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                        loading="lazy"
-                        onError={(e) => {
-                            console.log('❌ IMAGE FAILED:', imageUrl);
-
-                            // صورة بديلة لو فشل التحميل
-                            e.target.src =
-                                'https://via.placeholder.com/300x300?text=Image+Error';
-                        }}
-                    />
-
-                    {/* Overlay */}
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                        <span className="opacity-0 group-hover:opacity-100 text-white text-2xl transform scale-75 group-hover:scale-100 transition-all duration-200">
-                            🔍
-                        </span>
-                    </div>
-                </div>
-            );
-        })}
-    </div>
-)}
-
-
-
-
-                        </div>
-                    </div>
-                </div>
-            ))}
-        </div>
-    </div>
-)}
-
-
-
+                        {/* Unit Updates - ✅ مصلح */}
+                        {unit_updates && unit_updates.length > 0 && (
+                            <div className="bg-gray-800 rounded-2xl shadow-sm p-6 mb-8">
+                                <h2 className="text-lg font-bold text-white mb-4">🔄 تطورات الوحدة</h2>
+                                <div className="space-y-4">
+                                    {unit_updates.slice(0, 5).map((update, idx) => (
+                                        <div key={idx} className="p-4 bg-gray-900 rounded-xl">
+                                            <div className="flex gap-3 items-start">
+                                                <div className="w-10 h-10 bg-emerald-900/50 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <span className="text-emerald-500">📢</span>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-white font-medium">{update.update_text}</p>
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        {new Date(update.created_at).toLocaleDateString('ar-EG', {
+                                                            year: 'numeric', month: 'long', day: 'numeric'
+                                                        })}
+                                                    </p>
+                                                    {/* ✅ صور التطورات - مصلحة */}
+                                                    <UpdateImages images={update.images} />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </>
                 );
         }
@@ -484,6 +486,28 @@ const imageUrl = getImageUrl(
 
     return (
         <div className="min-h-screen bg-gray-900" dir="rtl">
+
+            {/* ✅ Lightbox للصور */}
+            {lightboxImg && (
+                <div
+                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+                    onClick={() => setLightboxImg(null)}
+                >
+                    <button
+                        className="absolute top-4 left-4 text-white text-3xl hover:text-gray-300 transition"
+                        onClick={() => setLightboxImg(null)}
+                    >
+                        ✕
+                    </button>
+                    <img
+                        src={lightboxImg}
+                        alt="صورة مكبّرة"
+                        className="max-w-full max-h-[90vh] rounded-xl shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                    />
+                </div>
+            )}
+
             {/* Sidebar */}
             <aside className={`fixed top-0 right-0 h-full bg-gray-950 shadow-xl z-40 transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-20'}`}>
                 <div className="p-4 border-b border-gray-800 flex items-center justify-between">
@@ -493,7 +517,7 @@ const imageUrl = getImageUrl(
                             <span className="font-bold text-white">موطن العقارية</span>
                         </div>
                     )}
-                    <button 
+                    <button
                         onClick={() => setSidebarOpen(!sidebarOpen)}
                         className="p-2 rounded-lg hover:bg-gray-800 transition"
                     >
@@ -509,8 +533,8 @@ const imageUrl = getImageUrl(
                             key={item.id}
                             onClick={() => setActivePage(item.id)}
                             className={`w-full flex items-center gap-3 p-3 rounded-xl mb-2 transition ${
-                                activePage === item.id 
-                                    ? 'bg-emerald-700 text-white' 
+                                activePage === item.id
+                                    ? 'bg-emerald-700 text-white'
                                     : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                             }`}
                         >
@@ -534,7 +558,8 @@ const imageUrl = getImageUrl(
                 <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-30">
                     <div className="flex justify-between items-center px-6 py-4">
                         <div className="flex items-center gap-4">
-                            <NotificationBell notifications={dashboardData.notifications || []} />
+                            {/* ✅ تمرير notifications من dashboardData مباشرة */}
+                            <NotificationBell notifications={notifications || dashboardData.notifications || []} />
                             <div className="flex items-center gap-3">
                                 <div className="text-right">
                                     <p className="text-sm text-gray-400">مرحباً بعودتك</p>
