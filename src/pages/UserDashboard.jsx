@@ -407,28 +407,28 @@ const getImageUrl = (path) => {
     if (!path) return '';
 
     let cleanPath = path.replace(/\\/g, '');
-    // لو جاي URL كامل
+
+    // لو الرابط localhost بدليه بالدومين الحقيقي
+    cleanPath = cleanPath.replace(
+        'http://127.0.0.1:8000',
+        'https://api.mawtin.net'
+    );
+
+    cleanPath = cleanPath.replace(
+        'http://localhost:8000',
+        'https://api.mawtin.net'
+    );
+
+    // لو الرابط كامل بالفعل
     if (cleanPath.startsWith('http')) {
-        
-        // لو localhost بدله بالدومين الحقيقي
-        cleanPath = cleanPath.replace(
-            'http://127.0.0.1:8000',
-            'https://api.mawtin.net'
-        );
-
-        cleanPath = cleanPath.replace(
-            'http://localhost:8000',
-            'https://api.mawtin.net'
-        );
-
         return cleanPath;
     }
 
+    // إزالة slash زيادة
     cleanPath = cleanPath.replace(/^\/+/, '');
 
     return `https://api.mawtin.net/${cleanPath}`;
-};
-console.log("IMAGE OBJECT =>", img);
+};// console.log("IMAGE OBJECT =>", img);
 const imageUrl = getImageUrl(
     img.path || img.image_url || img.url
 );
@@ -463,6 +463,7 @@ const imageUrl = getImageUrl(
         })}
     </div>
 )}
+
 
 
 
