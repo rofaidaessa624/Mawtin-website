@@ -403,25 +403,35 @@ const fetchDashboard = async () => {
         {update.images.map((img, imgIdx) => {
 
             // ✅ تنظيف الرابط
-            const getImageUrl = (path) => {
-                if (!path) return '';
+const getImageUrl = (path) => {
+    if (!path) return '';
 
-                // إزالة الـ escape characters
-                let cleanPath = path.replace(/\\/g, '');
+    let cleanPath = path.replace(/\\/g, '');
+    // لو جاي URL كامل
+    if (cleanPath.startsWith('http')) {
+        
+        // لو localhost بدله بالدومين الحقيقي
+        cleanPath = cleanPath.replace(
+            'http://127.0.0.1:8000',
+            'https://api.mawtin.net'
+        );
 
-                // لو الرابط كامل
-                if (cleanPath.startsWith('http')) {
-                    return cleanPath;
-                }
+        cleanPath = cleanPath.replace(
+            'http://localhost:8000',
+            'https://api.mawtin.net'
+        );
 
-                // إزالة slash زيادة
-                cleanPath = cleanPath.replace(/^\/+/, '');
+        return cleanPath;
+    }
 
-                return `https://api.mawtin.net/${cleanPath}`;
-            };
+    cleanPath = cleanPath.replace(/^\/+/, '');
 
-            const imageUrl = getImageUrl(img.path);
-
+    return `https://api.mawtin.net/${cleanPath}`;
+};
+console.log("IMAGE OBJECT =>", img);
+const imageUrl = getImageUrl(
+    img.path || img.image_url || img.url
+);
             return (
                 <div
                     key={imgIdx}
