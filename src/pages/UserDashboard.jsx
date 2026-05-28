@@ -128,45 +128,51 @@ const UserDashboard = ({ user, onLogout }) => {
     ];
 
     // ✅ مكوّن عرض صور التطورات
-    const UpdateImages = ({ images }) => {
-        if (!images || images.length === 0) return null;
+const UpdateImages = ({ images }) => {
+    if (!images || images.length === 0) return null;
 
-        return (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-4">
-                {images.map((img, imgIdx) => {
-                    // ✅ جرب كل الحقول المحتملة للرابط
-                    const rawPath = img?.path || img?.image_url || img?.url || img?.image_path || img?.file_path || '';
-                    const imageUrl = getImageUrl(rawPath);
+    return (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+            {images.map((img, imgIdx) => {
 
-                    if (!imageUrl) return null;
+                const imageUrl =
+                    img?.url ||
+                    img?.image_url ||
+                    img?.path ||
+                    '';
 
-                    return (
-                        <div
-                            key={imgIdx}
-                            className="group relative aspect-square rounded-xl overflow-hidden bg-gray-800 border border-gray-700 cursor-pointer shadow-md hover:shadow-emerald-500/20 transition-all duration-300"
-                            onClick={() => setLightboxImg(imageUrl)}
-                        >
-                            <img
-                                src={imageUrl}
-                                alt={`تطور الوحدة ${imgIdx + 1}`}
-                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                                loading="lazy"
-                                onError={(e) => {
-                                    console.warn('❌ فشل تحميل الصورة:', imageUrl);
-                                    e.target.parentElement.style.display = 'none';
-                                }}
-                            />
-                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
-                                <span className="opacity-0 group-hover:opacity-100 text-white text-2xl transform scale-75 group-hover:scale-100 transition-all duration-200">
-                                    🔍
-                                </span>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-        );
-    };
+                if (!imageUrl) return null;
+
+                return (
+                    <div
+                        key={imgIdx}
+                        className="group relative h-52 rounded-xl overflow-hidden bg-gray-800 border border-gray-700 cursor-pointer"
+                        onClick={() => setLightboxImg(imageUrl)}
+                    >
+                        <img
+                            src={imageUrl}
+                            alt={`تطور الوحدة ${imgIdx + 1}`}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="eager"
+                            draggable={false}
+                            onLoad={() => {
+                                console.log('✅ IMAGE LOADED:', imageUrl);
+                            }}
+                            onError={(e) => {
+                                console.log('❌ IMAGE FAILED:', imageUrl);
+
+                                e.currentTarget.src =
+                                    'https://placehold.co/400x400?text=No+Image';
+                            }}
+                        />
+
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all" />
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
 
     const renderContent = () => {
         switch (activePage) {
@@ -555,7 +561,7 @@ const UserDashboard = ({ user, onLogout }) => {
             {/* Main Content */}
             <main className={`transition-all duration-300 ${sidebarOpen ? 'mr-64' : 'mr-20'}`}>
                 {/* Top Header */}
-                <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-30">
+                <header className="bg-gray-800 border-b border-gray-700 sticky top-0 z-[100]">
                     <div className="flex justify-between items-center px-6 py-4">
                         <div className="flex items-center gap-4">
                             {/* ✅ تمرير notifications من dashboardData مباشرة */}
