@@ -15,12 +15,14 @@ const NotificationBell = ({ notifications = [] }) => {
     const fetchNotifications = async () => {
         try {
             const token = localStorage.getItem('user_token');
+
             const res = await api.get('/notifications', {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            if (res.data.success) {
-                setNotifs(res.data.data);
-                setUnreadCount(res.data.unread_count);
+
+            if (res?.data?.success) {
+                setNotifs(Array.isArray(res.data.data) ? res.data.data : []);
+                setUnreadCount(res.data.unread_count || 0);
             }
         } catch (e) {
             console.error('Error fetching notifications:', e);
@@ -30,10 +32,17 @@ const NotificationBell = ({ notifications = [] }) => {
     const markAsRead = async (id) => {
         try {
             const token = localStorage.getItem('user_token');
+
             await api.post(`/notifications/${id}/read`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setNotifs(prev => prev.map(n => n.id === id ? { ...n, is_read: 1 } : n));
+
+            setNotifs(prev =>
+                prev.map(n =>
+                    n.id === id ? { ...n, is_read: 1 } : n
+                )
+            );
+
             setUnreadCount(prev => Math.max(0, prev - 1));
         } catch (e) {
             console.error(e);
@@ -43,9 +52,11 @@ const NotificationBell = ({ notifications = [] }) => {
     const markAllAsRead = async () => {
         try {
             const token = localStorage.getItem('user_token');
+
             await api.post('/notifications/read-all', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+
             setNotifs(prev => prev.map(n => ({ ...n, is_read: 1 })));
             setUnreadCount(0);
         } catch (e) {
@@ -53,10 +64,11 @@ const NotificationBell = ({ notifications = [] }) => {
         }
     };
 
-    const isUnread = (notif) => notif.is_read === 0 || notif.is_read === false;
+    const isUnread = (notif) =>
+        notif?.is_read === 0 || notif?.is_read === false;
 
     const getTypeColor = (type) => {
-        switch(type) {
+        switch (type) {
             case 'success': return 'text-emerald-400';
             case 'warning': return 'text-yellow-400';
             case 'installment': return 'text-blue-400';
@@ -65,12 +77,24 @@ const NotificationBell = ({ notifications = [] }) => {
     };
 
     const getTypeIcon = (type) => {
-        switch(type) {
+        switch (type) {
             case 'success': return '✅';
             case 'installment': return '💰';
             case 'warning': return '⚠️';
             default: return '📢';
         }
+    };
+
+    // 🔥 حماية التاريخ من أي error
+    const formatDate = (date) => {
+        if (!date) return '';
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('ar-EG', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
     };
 
     return (
@@ -80,6 +104,7 @@ const NotificationBell = ({ notifications = [] }) => {
                 className="relative p-2 rounded-lg hover:bg-gray-700 transition"
             >
                 <span className="text-xl">🔔</span>
+
                 {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
                         {unreadCount}
@@ -89,17 +114,21 @@ const NotificationBell = ({ notifications = [] }) => {
 
             {showDropdown && (
                 <>
-                    {/* خلفية شفافة للقفل عند النقر بره */}
-                    <div 
-                        className="fixed inset-0 z-40" 
+                    <div
+                        className="fixed inset-0 z-40"
                         onClick={() => setShowDropdown(false)}
-                    ></div>
-                    
+                    />
+
                     <div className="absolute left-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-xl shadow-2xl z-50 max-h-96 overflow-y-auto">
+
                         <div className="flex justify-between items-center p-3 border-b border-gray-700 sticky top-0 bg-gray-800">
                             <h3 className="font-bold text-white">الإشعارات</h3>
+
                             {unreadCount > 0 && (
-                                <button onClick={markAllAsRead} className="text-xs text-emerald-400 hover:text-emerald-300">
+                                <button
+                                    onClick={markAllAsRead}
+                                    className="text-xs text-emerald-400 hover:text-emerald-300"
+                                >
                                     تعليم الكل كمقروء
                                 </button>
                             )}
@@ -112,29 +141,44 @@ const NotificationBell = ({ notifications = [] }) => {
                         ) : (
                             notifs.slice(0, 10).map((notif) => (
                                 <div
-                                    key={notif.id}
-                                    onClick={() => markAsRead(notif.id)}
+                                    key={notif?.id}
+                                    onClick={() => markAsRead(notif?.id)}
                                     className={`p-3 border-b border-gray-700 cursor-pointer transition ${
-                                        isUnread(notif) ? 'bg-gray-700/50' : 'hover:bg-gray-700/30'
+                                        isUnread(notif)
+                                            ? 'bg-gray-700/50'
+                                            : 'hover:bg-gray-700/30'
                                     }`}
                                 >
                                     <div className="flex items-start gap-2">
-                                        <span className={`text-lg ${getTypeColor(notif.type)}`}>
-                                            {getTypeIcon(notif.type)}
+
+                                        <span className={`text-lg ${getTypeColor(notif?.type)}`}>
+                                            {getTypeIcon(notif?.type)}
                                         </span>
+
                                         <div className="flex-1">
-                                            <p className={`text-sm ${isUnread(notif) ? 'text-white font-semibold' : 'text-gray-300'}`}>
-                                                {notif.title}
+
+                                            <p className={`text-sm ${
+                                                isUnread(notif)
+                                                    ? 'text-white font-semibold'
+                                                    : 'text-gray-300'
+                                            }`}>
+                                                {typeof notif?.title === 'string'
+                                                    ? notif.title
+                                                    : ''}
                                             </p>
-                                            <p className="text-xs text-gray-400 mt-1">{notif.message}</p>
+
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                {typeof notif?.message === 'string'
+                                                    ? notif.message
+                                                    : ''}
+                                            </p>
+
                                             <p className="text-xs text-gray-500 mt-1">
-                                                {new Date(notif.created_at).toLocaleDateString('ar-EG', {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: 'numeric'
-                                                })}
+                                                {formatDate(notif?.created_at)}
                                             </p>
+
                                         </div>
+
                                         {isUnread(notif) && (
                                             <span className="w-2 h-2 bg-emerald-500 rounded-full mt-1 flex-shrink-0"></span>
                                         )}
