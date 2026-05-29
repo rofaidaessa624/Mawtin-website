@@ -13,11 +13,12 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  self.registration.showNotification(
-    payload.notification?.title || "Notification",
-    {
-      body: payload.notification?.body || "",
-      icon: '/mawtin-icon.png',
-    }
-  );
+  const title = payload?.notification?.title || "Notification";
+  const options = {
+    body: payload?.notification?.body || "",
+    icon: '/mawtin-icon.png',
+    data: payload?.data || {},
+  };
+
+  self.registration.showNotification(title, options);
 });
