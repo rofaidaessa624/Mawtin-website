@@ -2,11 +2,15 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
+// 🔔 أضف Firebase
+import { requestForToken } from '../firebase';
+
 const UserLogin = ({ onLogin }) => {
     const [nationalId, setNationalId] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -21,13 +25,28 @@ const UserLogin = ({ onLogin }) => {
             });
 
             if (response.data.token) {
+                const client = response.data.client;
+
                 localStorage.setItem('user_token', response.data.token);
-                localStorage.setItem('user_data', JSON.stringify(response.data.client));
-                onLogin(response.data.client);
-                
-                // ✅ التوجيه للصفحة الرئيسية
+                localStorage.setItem('user_data', JSON.stringify(client));
+
+                onLogin(client);
+
+                // 🔔 1) جلب Firebase Token
+                const fcmToken = await requestForToken();
+
+                if (fcmToken) {
+                    // 🔥 2) إرسال التوكن للـ backend
+                    await api.post('/v1/client/save-device-token', {
+                        client_id: client.id,
+                        device_token: fcmToken
+                    });
+                }
+
+                // ➜ redirect
                 navigate('/');
             }
+
         } catch (err) {
             setError(err.response?.data?.message || 'حدث خطأ في تسجيل الدخول');
         } finally {
@@ -56,8 +75,7 @@ const UserLogin = ({ onLogin }) => {
                             type="text"
                             value={nationalId}
                             onChange={(e) => setNationalId(e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                            placeholder="ادخل الرقم القومي (14 رقم)"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                             maxLength={14}
                             required
                         />
@@ -69,8 +87,7 @@ const UserLogin = ({ onLogin }) => {
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
-                            placeholder="********"
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
                             required
                         />
                     </div>
@@ -78,7 +95,7 @@ const UserLogin = ({ onLogin }) => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-200 disabled:opacity-50 font-semibold"
+                        className="w-full bg-indigo-600 text-white py-3 rounded-lg disabled:opacity-50"
                     >
                         {loading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
                     </button>

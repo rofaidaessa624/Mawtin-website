@@ -4,33 +4,27 @@ import api from '../services/api';
 import NotificationBell from '../components/NotificationBell';
 import InstallmentsTable from '../components/InstallmentsTable';
 import UnitUpdates from '../components/UnitUpdates';
+import { requestForToken, onMessageListener } from '../firebase';
 
 
-const BASE_URL = 'https://api.mawtin.net';
+const BASE_URL = 'http://127.0.0.1:8000';
 
 // ✅ دالة تنظيف رابط الصورة - مصلحة بالكامل
 const getImageUrl = (path) => {
     if (!path) return '';
 
-    // لو الرابط فيه localhost أو 127.0.0.1 استبدله بالدومين الحقيقي
-    let cleanPath = path
-        .replace('http://127.0.0.1:8000', BASE_URL)
-        .replace('http://localhost:8000', BASE_URL);
-
-    // لو الرابط كامل بالفعل (يبدأ بـ http)
-    if (cleanPath.startsWith('http')) {
-        return cleanPath;
+    if (path.startsWith('http')) {
+        return path;
     }
 
-    // لو path فيه backslash (Windows style) حوله لـ forward slash
-    cleanPath = cleanPath.replace(/\\/g, '/');
+    path = path.replace(/\\/g, '/');
 
-    // إزالة أي slashes زيادة من البداية
-    cleanPath = cleanPath.replace(/^\/+/, '');
+    if (path.startsWith('/storage/')) {
+        return `${BASE_URL}${path}`;
+    }
 
-    return `${BASE_URL}/${cleanPath}`;
+    return `${BASE_URL}/storage/${path}`;
 };
-
 const UserDashboard = ({ user, onLogout }) => {
     const [dashboardData, setDashboardData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -42,9 +36,32 @@ const UserDashboard = ({ user, onLogout }) => {
 
     useEffect(() => {
         fetchDashboard();
-        if (Notification.permission === 'default') {
-            Notification.requestPermission();
-        }
+requestForToken().then(async (token) => {
+
+    if (token) {
+
+        const authToken = localStorage.getItem('user_token');
+
+        await api.post('/save-device-token', {
+            device_token: token
+        }, {
+            headers: {
+                Authorization: `Bearer ${authToken}`
+            }
+        });
+
+    }
+
+});
+
+onMessageListener().then((payload) => {
+
+    new Notification(payload.notification.title, {
+        body: payload.notification.body,
+        icon: '/logo192.png'
+    });
+
+});
     }, []);
 
     const fetchDashboard = async () => {
@@ -65,6 +82,11 @@ const UserDashboard = ({ user, onLogout }) => {
                     'Accept': 'application/json'
                 }
             });
+
+//             const response = await axios.post(
+//   `${this.API_BASE_URL}/api/v1/unit-updates`,
+//   updateForm
+// );
 
             if (response.data) {
                 setDashboardData(response.data);
@@ -135,11 +157,13 @@ const UpdateImages = ({ images }) => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
             {images.map((img, imgIdx) => {
 
-                const imageUrl =
-                    img?.url ||
-                    img?.image_url ||
-                    img?.path ||
-                    '';
+           const imageUrl = getImageUrl(
+    img?.url ||
+    img?.image_url ||
+    img?.path ||
+    img?.file_path ||
+    ''
+);
 
                 if (!imageUrl) return null;
 
